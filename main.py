@@ -1,11 +1,9 @@
+# -*- coding: utf-8 -*-
 import json
 
-import requests
 from flask import Flask, jsonify, request
 import threading
-
 import globals_
-from chatapps.whatsapp import whatsapp
 from initredisdata import init_redis_data
 from services.deviceSet import setDeviceStatus
 from services.send_message_phone import send_message_from_phone
@@ -15,13 +13,6 @@ app = Flask(__name__)
 
 def response_json(status='ok', msg='', data='', code=200):
     return {'code': code, 'status': status, 'msg': msg, 'data': data}
-
-
-@app.route('/get_devices', methods=['GET'])
-def devices():
-    t = threading.Thread(target=get_devices)
-    t.start()
-    return jsonify({'status': 'ok'})
 
 
 # 返回设备对聊状态
@@ -71,6 +62,8 @@ def start_send_message():
             t.start()
         return jsonify({'status': 'ok'})
     except Exception as e:
+        serial = request.json.get('serial')
+        setDeviceStatus(serial, 1)
         return jsonify({'status': 'error', 'msg': str(e)})
 
 
@@ -85,16 +78,16 @@ def set_contact():
     return jsonify({'status': 'ok'})
 
 
-def get_devices():
-    apiurl = 'http://192.168.1.102:7100/api/v1/devices'
-    access_token = 'd8e1034635724eb68eacd8b25667b4b8cdf6d022af0c42b5be970a2d18fff4cf'
-
-    headers = {
-        "Authorization": f"Bearer {access_token}"
-    }
-
-    res = requests.get(apiurl, headers=headers)
-    print(res.json())
+# def get_devices():
+#     apiurl = 'http://192.168.1.102:7100/api/v1/devices'
+#     access_token = 'd8e1034635724eb68eacd8b25667b4b8cdf6d022af0c42b5be970a2d18fff4cf'
+#
+#     headers = {
+#         "Authorization": f"Bearer {access_token}"
+#     }
+#
+#     res = requests.get(apiurl, headers=headers)
+#     print(res.json())
 
 
 # Press the green button in the gutter to run the script.
