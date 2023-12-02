@@ -9,8 +9,8 @@ from chatapps.whatsapp import whatsapp
 
 
 def send_message_from_phone(data, device_id_):
-    device_id = device_id_['deviceid']
-    system_setting = json.loads(globals_.r.hget("device_system_setting", device_id).encode("utf-8"))
+    device_id = device_id_
+    system_setting = json.loads(globals_.r.hget("device_system_setting","data").encode("utf-8"))
     # 定义打招呼时间间隔 minute
     interval_ = int(system_setting['interval'] or 2)
     interval = timedelta(minutes=interval_)
@@ -31,11 +31,12 @@ def send_message_from_phone(data, device_id_):
 
     # 是否在间隔一定时间后添加联系人开关
     add_contract_flag__ = globals_.r.hget("device_system_setting", device_id)
-    add_contract_flag_ = globals_.r.get['add_contact_flag'+device_id] or False
+#     add_contract_flag_ = globals_.r.get['add_contact_flag'+device_id] or False
+    add_contract_flag_ = False
     try:
         message_list = json.loads(globals_.r.get('init_global_message_list'))
     except Exception as e:
-        message_list = ['Hi', 'Nice to meet you!']
+        message_list = ['你好sam哥，昨天和anne說好了，你什麼時候可以幫忙辦理好這個事情呀？', 'Hello~麻煩把你的車移一下好嘛？你佔用了我們公司的車位啦']
         logger.error("message_list error:{}"+str(e))
 
     if add_contract_flag_ is True:
@@ -59,54 +60,61 @@ def send_message_from_phone(data, device_id_):
     pause_event = threading.Event()
     resume_event = threading.Event()
     while datetime.now() <= end_time and break_flag is False:
-        print("running...")
-        stop = int(globals_.r.hget("device_status", device_id) or 0)
+        print("running...",device_id)
+        stop = globals_.dbapi_instance.getRunningState(device_id)
         print("stop:", stop)
         if stop == 3:
             break
         if stop == 2: # 暂停
             pause_event.set()
+        if stop ==0:
+            pause_event.clear()
         if pause_event.is_set(): # 暂停
             resume_event.wait() # 阻塞
             resume_event.clear() # 清除
             pause_event.clear() # 清除
-        for item in data:
-            stop = int(globals_.r.hget("device_status", device_id) or 0)
-            if stop == 3:
-                break
-            exists = any(d['device_id'] == device_id for d in globals_.connected_devices)
-            if exists is False:
+
+        if add_contract_flag:
+            if datetime.now() - start_time >= interval:
+                # 每隔interval分钟，添加pagesize个联系人
+                add_contact_and_send_message(index, pagesize, contract_list, whatsapp_instance, init_message)
+                index += pagesize
+                if index >= len(contract_list):
+                    index = 0
+                globals_.r.set("index_tmp"+device_id, index)
+
+                start_time = datetime.now()
+        try:
+            # 发送消息
+            print(message_list)
+            for message_item in message_list:
+                stop = globals_.dbapi_instance.getRunningState(device_id)
+                if stop == 3:
+                    break
+                if stop == 2:  # 暂停
+                    pause_event.set()
+                if stop == 0:
+                    pause_event.clear()
+                if pause_event.is_set():  # 暂停
+                    resume_event.wait()  # 阻塞
+                    resume_event.clear()  # 清除
+                    pause_event.clear()  # 清除
+                print("message_item:",message_item)
+                whatsapp_instance.get_nickname()
+                if whatsapp_instance.find_new_contact(data['rec']):
+                    print("find_new_contact")
+                    whatsapp_instance.input_message_click_send(message_item)
+                else:
+                    print("not find_new_contact")
+            # whatsapp_instance.jump_to_main()
+        except Exception as e:
+            if str(e) == "device_not_found":
+                print("设备离线")
                 break_flag = True
                 break
-            if add_contract_flag:
-                if datetime.now() - start_time >= interval:
-                    # 每隔interval分钟，添加pagesize个联系人
-                    add_contact_and_send_message(index, pagesize, contract_list, whatsapp_instance, init_message)
-                    index += pagesize
-                    if index >= len(contract_list):
-                        index = 0
-                    globals_.r.set("index_tmp"+device_id, index)
-
-                    start_time = datetime.now()
-            try:
-                # 发送消息
-                print(message_list)
-                for message_item in message_list:
-                    print("message_item:",message_item)
-                    if whatsapp_instance.find_new_contact(item['rec']):
-                        print("find_new_contact")
-                        whatsapp_instance.input_message_click_send(message_item)
-                    else:
-                        print("not find_new_contact")
-                # whatsapp_instance.jump_to_main()
-            except Exception as e:
-                if str(e) == "device_not_found":
-                    print("设备离线")
-                    break_flag = True
-                    break
-                print("send message error:{}".format(e))
+            print("send message error:{}".format(e))
     globals_.r.set("index_tmp"+device_id, 0)
-    globals_.r.hset("device_status", device_id_['deviceid'], 1)
+    globals_.dbapi_instance.stop(device_id)
 
 
 def add_contact_and_send_message(index, pagesize, contract_list, whatsapp_instance, init_message):

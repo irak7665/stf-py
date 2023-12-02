@@ -5,8 +5,8 @@ import redis
 from cryptography.fernet import Fernet
 import logging
 from tools import get_cpu_id, get_mac_address, generate_license_key
-
-# r = redis.StrictRedis(host='14.128.55.167', port=6379, db=1, password='vip36913606', decode_responses=True)
+from redbapi import Dbapi
+dbapi_instance = Dbapi()
 
 # 创建一个logger
 logger = logging.getLogger('my_logger')

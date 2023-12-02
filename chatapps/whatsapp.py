@@ -17,9 +17,6 @@ class whatsapp(IM):
         self.info = self.d.info
         self.device_info = self.d.device_info
 
-        print("self.info:",self.info)
-        print("self.device_info:",self.d.device_info)
-
     def connect_device(self):
         """
         连接设备
@@ -88,7 +85,7 @@ class whatsapp(IM):
         self.d(resourceId="com.whatsapp:id/whatsapp_toolbar_home").click()
         time.sleep(1)
 
-    # 查找陌生联系人
+    # 查找陌生or exit contact 联系人
     def find_new_contact(self, receiver):
         """
         查找陌生联系人
@@ -97,6 +94,7 @@ class whatsapp(IM):
         receiver_ = "+" + str(receiver)
         try:
             if self.d.current_app()['activity'] == "com.whatsapp.Conversation":
+
                 if self.d(resourceId="com.whatsapp:id/conversation_contact_name").get_text().strip().replace(" ","") == receiver_:
                     return True
                 else:
@@ -148,11 +146,13 @@ class whatsapp(IM):
         try:
             # 如果当前页面是聊天页面，并且聊天对象是receiver
             if self.d.current_app()['activity'] == "com.whatsapp.Conversation":
-                if self.d(resourceId="com.whatsapp:id/conversation_contact_name").get_text() == receiver:
-                    time.sleep(2)
-                    self.input_message_click_send(message)
-                    return True
-
+                # if self.d(resourceId="com.whatsapp:id/conversation_contact_name").get_text() == receiver:
+                #     time.sleep(2)
+                #     self.input_message_click_send(message)
+                #     return True
+                time.sleep(2)
+                self.input_message_click_send(message)
+                return True
             # 如果是其他联系人聊天窗口，则回退到主页面
             time.sleep(2)
             if self.d(resourceId="com.whatsapp:id/whatsapp_toolbar_home").exists:
@@ -197,8 +197,8 @@ class whatsapp(IM):
         # 点击发送
         time.sleep(3)
         self.d(resourceId="com.whatsapp:id/conversation_entry_action_button").click()
-        time.sleep(2)
-        self.d(resourceId="com.whatsapp:id/whatsapp_toolbar_home").click()
+        # time.sleep(2)
+        # self.d(resourceId="com.whatsapp:id/whatsapp_toolbar_home").click()
 
     # 定位联系人 并进入聊天界面
     def find_contact(self, receiver):

@@ -4,9 +4,9 @@ from abc import ABC, abstractmethod
 
 class IM(ABC):
     @abstractmethod
-    def get_nickname(self):
+    def start_whatsapp(self):
         pass
 
     @abstractmethod
-    def send_message(self, receiver, message):
+    def input_message_click_send(self, receiver, message):
         pass
