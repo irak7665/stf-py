@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 import json
+import os
 
 from flask import Flask, jsonify, request
-import threading
 import globals_
-from initredisdata import init_redis_data, system_settings, set_contact, set_stranger, device_settings
-from services.deviceSet import setDeviceStatus
+from initredisdata import system_settings, set_contact, set_stranger, device_settings
 from services.message_sender import MessageSender
-from services.send_message_phone import send_message_from_phone
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -155,6 +153,7 @@ def get_setting():
 @app.route('/device_setting', methods=['POST'])
 def device_setting():
     serial = request.json.get('serial')
+    print('serial:',serial)
     interval = request.json.get('interval')
     init_message = request.json.get('init_message')
     loop_message_time = request.json.get('loop_message_time')
@@ -171,7 +170,9 @@ def device_setting():
 @app.route('/get_device_setting', methods=['POST'])
 def get_device_setting():
     serial = request.json.get('serial')
-    data = globals_.r.hget("device_setting", serial)
+    print("get_device_setting_serial:",serial)
+    data = globals_.r.hget("device_system_setting", serial)
+    print("data:",data)
     return jsonify({'status': 'ok','data': json.loads(data)})
 
 
@@ -179,4 +180,4 @@ def get_device_setting():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True,  port=5000)

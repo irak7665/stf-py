@@ -30,8 +30,8 @@ class MessageSender(threading.Thread):
         except:
             pass
 
-        if globals_.r.hget("device_setting", device_id) is not None:
-            device_setting = json.loads(globals_.r.hget("device_setting", device_id))
+        if globals_.r.hget("device_system_setting", device_id) is not None:
+            device_setting = json.loads(globals_.r.hget("device_system_setting", device_id))
         else:
             device_setting = False
 

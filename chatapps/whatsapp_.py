@@ -54,6 +54,12 @@ class whatsapp(IM):
                 self.d(text="总是").click()
                 time.sleep(1)
                 self.d(resourceId="android:id/button1").click()
+            if self.d(resourceId="android:id/action0", text="靜音").exists:
+                self.d(resourceId="android:id/action0", text="靜音").click()
+                time.sleep(1)
+                self.d(text="總是").click()
+                time.sleep(1)
+                self.d(resourceId="android:id/button1").click()
         except Exception as e:
             pass
 
@@ -63,7 +69,10 @@ class whatsapp(IM):
 
         receiver_ = "+" + str(receiver)
         try:
-            if self.d.current_app()['activity'] == "com.whatsapp.Conversation":
+            print("self.d.current_app['activity']:",self.d.current_app()['activity'])
+            if 'Conversation' in str(self.d.current_app()['activity']):
+                print("Conversation in activity retun true...")
+            # if self.d.current_app()['activity'] == "com.whatsapp.Conversation":
                 return True
                 # if self.d(resourceId="com.whatsapp:id/conversation_contact_name").get_text().strip().replace(" ",
                 #                                                                                              "") == receiver_:
@@ -76,7 +85,10 @@ class whatsapp(IM):
                     globals_.dbapi_instance.setRunningTips(self.device_id, 'error')
                     return 'bad'
                 # 进入主界面点击“对话”的tab
-                self.d(resourceId="com.whatsapp:id/tab", text="对话").click()
+                if self.d(resourceId="com.whatsapp:id/tab",text="對話").exists:
+                    self.d(resourceId="com.whatsapp:id/tab",text="對話").click()
+                elif self.d(resourceId="com.whatsapp:id/tab", text="对话").exists:
+                    self.d(resourceId="com.whatsapp:id/tab", text="对话").click()
                 time.sleep(1)
                 # 点击右下角的“新建信息”按钮
                 self.d(resourceId="com.whatsapp:id/fab").click()
@@ -116,8 +128,10 @@ class whatsapp(IM):
     def input_message_click_send(self, message, rec):
         """
         """
-        if self.d.current_app()['activity'] != "com.whatsapp.Conversation":
+        if 'Conversation' not in str(self.d.current_app()['activity']):
+        # if self.d.current_app()['activity'] != "com.whatsapp.Conversation" and self.d.current_app()['activity'] != ".Conversation":
             if self.find_contact(rec) == 'bad':
+                print("bad activity")
                 return 'bad'
         else:
             self.exist_element(rec)

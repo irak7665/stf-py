@@ -34,7 +34,7 @@ class Dbapi():
         self.client.publish('automationState', data)
 
     def getRunningState(self, serial):
-        access_token = 'a3490fb6edca41948934325e2a3f9261b9cc858b4c4e4409bf118a572f068fbd'
+        access_token = 'cba4dbb49a9c490eb7e6a0e6a812b360602e2dccad7e48ee91dc1d1bf8dda891'
         headers = {
             'Authorization': f"Bearer {access_token}"
         }
